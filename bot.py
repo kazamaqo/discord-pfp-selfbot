@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import aiohttp
 import os
 import sys
 import logging
@@ -149,28 +148,29 @@ def main():
     print("Discord PFP & Status Selfbot")
     print("=" * 50)
     
-    # Get token from Railway environment variable
+    # Try token first
     token = os.getenv('DISCORD_TOKEN')
+    email = os.getenv('DISCORD_EMAIL')
+    password = os.getenv('DISCORD_PASSWORD')
     
-    if not token:
-        print("ERROR: DISCORD_TOKEN environment variable not set!")
-        print("Please set DISCORD_TOKEN in Railway variables")
-        sys.exit(1)
-    
-    print(f"Token found. Length: {len(token)}")
-    print(f"Token starts with: {token[:20]}...")
     print("Attempting to connect...")
     
     try:
-        bot.run(token)
+        if token:
+            print(f"Using token authentication (Length: {len(token)})")
+            bot.run(token)
+        elif email and password:
+            print(f"Using email/password authentication")
+            bot.run(email, password)
+        else:
+            print("ERROR: No authentication method found!")
+            print("Set either:")
+            print("  - DISCORD_TOKEN")
+            print("  - DISCORD_EMAIL + DISCORD_PASSWORD")
+            sys.exit(1)
+            
     except discord.errors.LoginFailure as e:
         print("\n❌ LOGIN FAILED!")
-        print("=" * 50)
-        print("Possible reasons:")
-        print("1. Token is invalid or expired")
-        print("2. Token format is wrong")
-        print("3. Account is locked/deleted")
-        print("4. Token has extra spaces/characters")
         print("=" * 50)
         print(f"Error: {str(e)}")
         sys.exit(1)
