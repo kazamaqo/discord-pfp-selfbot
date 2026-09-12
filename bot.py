@@ -129,11 +129,12 @@ def main():
     print("Discord PFP & Status Selfbot")
     print("=" * 50)
     
-    # Get token from user
-    token = input("\n🔑 Enter your Discord token: ").strip()
+    # Get token from Railway environment variable
+    token = os.getenv('DISCORD_TOKEN')
     
     if not token:
-        print("Token is required!")
+        print("❌ DISCORD_TOKEN environment variable not set!")
+        print("Please set DISCORD_TOKEN in Railway variables")
         return
     
     print("Connecting...")
