@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Discord Bot Token Extractor",
+  "version": "1.0",
+  "description": "Safely extract Discord token for bot authentication",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://discord.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Discord Token Extractor"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://discord.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
