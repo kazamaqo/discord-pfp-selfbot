@@ -68,6 +68,49 @@ async def stream(ctx, channel_id: str, *, status_text: str):
         print(f"Error: {str(e)}")
 
 @bot.command()
+async def streampic(ctx, channel_id: str, *, status_text: str):
+    """
+    Set streaming status with a custom picture
+    Upload an image with this command
+    Usage: >streampic [CHANNEL_ID] [STATUS TEXT] [UPLOAD IMAGE]
+    Example: >streampic 123456789 streaming jin [image]
+    """
+    
+    try:
+        # Check if message has attachments
+        if not ctx.message.attachments:
+            return
+        
+        attachment = ctx.message.attachments[0]
+        
+        # Check if file is an image
+        if not attachment.content_type or not attachment.content_type.startswith('image/'):
+            return
+        
+        # Download the image
+        image_data = await attachment.read()
+        
+        # Change the profile picture
+        await bot.user.edit(avatar=image_data)
+        
+        # Create a Twitch activity with status text
+        activity = discord.Streaming(
+            name=status_text,
+            url=f"https://twitch.tv/{channel_id}"
+        )
+        
+        await bot.change_presence(activity=activity)
+        
+        print(f"PFP changed to {attachment.filename}")
+        print(f"Status set to: {status_text}")
+        
+        # Delete the message
+        await ctx.message.delete()
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+@bot.command()
 async def stopstream(ctx):
     """Stop streaming status and reset to default"""
     
