@@ -127,22 +127,26 @@ async def handle_login(request):
                 body { font-family: Arial; text-align: center; padding: 50px; background: #36393f; color: white; }
                 .container { max-width: 400px; margin: 0 auto; background: #2f3136; padding: 30px; border-radius: 8px; }
                 h1 { color: #7289da; }
-                input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 4px; }
+                input { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 4px; box-sizing: border-box; }
                 button { background: #7289da; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; width: 100%; }
                 button:hover { background: #5a73c4; }
-                .info { background: #40444b; padding: 15px; border-radius: 4px; margin: 20px 0; }
+                .info { background: #40444b; padding: 15px; border-radius: 4px; margin: 20px 0; font-size: 14px; }
+                .info p { margin: 8px 0; }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>🤖 Discord Bot Login</h1>
                 <div class="info">
-                    <p>Open Discord DevTools (Ctrl+Shift+I)</p>
-                    <p>Go to: Application → Local Storage → discord.com</p>
-                    <p>Copy the "token" value and paste it below</p>
+                    <p><strong>How to get your token:</strong></p>
+                    <p>1. Open Discord in browser</p>
+                    <p>2. Press Ctrl+Shift+I (DevTools)</p>
+                    <p>3. Go to: Application → Local Storage → discord.com</p>
+                    <p>4. Find "token" and copy the value</p>
+                    <p>5. Paste it below</p>
                 </div>
                 <form method="POST">
-                    <input type="password" name="token" placeholder="Paste your Discord token here" required>
+                    <input type="password" name="token" placeholder="Paste your Discord token here" required autofocus>
                     <button type="submit">Login</button>
                 </form>
             </div>
@@ -159,6 +163,8 @@ async def handle_login(request):
             return web.Response(text="Token is required!", status=400)
         
         authenticated_token = token
+        print(f"\n✓ Token received! Length: {len(token)}")
+        print("Connecting to Discord...\n")
         
         html = """
         <!DOCTYPE html>
@@ -186,7 +192,7 @@ async def handle_login(request):
         """
         return web.Response(text=html, content_type='text/html')
 
-async def start_web_server(port=5000):
+async def start_web_server(port=8080):
     """Start web server for login"""
     global web_server
     
@@ -199,12 +205,13 @@ async def start_web_server(port=5000):
     site = web.TCPSite(runner, '0.0.0.0', port)
     await site.start()
     
-    print(f"\n🌐 Login page started on http://localhost:{port}/")
-    print(f"📱 Public URL (if deployed): http://<your-railway-url>:{port}/\n")
+    print(f"🌐 Login page is running!")
+    print(f"📱 Open: https://discord-pfp-selfbot-h.up.railway.app/")
+    print(f"⏳ Waiting for token...\n")
     
     return runner
 
-async def wait_for_token(timeout=300):
+async def wait_for_token(timeout=600):
     """Wait for token to be submitted via web form"""
     global authenticated_token
     
@@ -217,28 +224,27 @@ async def wait_for_token(timeout=300):
         
         await asyncio.sleep(1)
     
-    print("✓ Token received! Connecting to Discord...\n")
     return authenticated_token
 
 async def main():
     print("=" * 50)
     print("Discord PFP & Status Selfbot")
-    print("=" * 50)
+    print("=" * 50 + "\n")
     
     global authenticated_token
     
     # Check if token is in environment variables
     token = os.getenv('DISCORD_TOKEN')
+    port = int(os.getenv('PORT', 8080))
     
     if token:
-        print(f"Using token from environment variable")
+        print(f"✓ Using token from environment variable")
         authenticated_token = token
     else:
         # Start web server for login
-        print("No DISCORD_TOKEN found in environment variables")
-        print("Starting web login...\n")
+        print("No DISCORD_TOKEN found. Starting web login...\n")
         
-        web_runner = await start_web_server(port=5000)
+        web_runner = await start_web_server(port=port)
         
         try:
             authenticated_token = await wait_for_token()
@@ -254,11 +260,13 @@ async def main():
     # Connect bot
     try:
         await bot.start(authenticated_token)
-    except discord.errors.LoginFailure:
-        print("❌ Invalid token!")
+    except discord.errors.LoginFailure as e:
+        print(f"❌ Invalid token! Error: {str(e)}")
         sys.exit(1)
     except Exception as e:
         print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
