@@ -37,8 +37,10 @@ async def pfp(ctx):
         # Change the profile picture
         await bot.user.edit(avatar=image_data)
         
-        await ctx.send(f"✓ PFP changed to {attachment.filename}!")
-        print(f"✓ PFP changed successfully")
+        print(f"✓ PFP changed to {attachment.filename}")
+        
+        # Delete the message
+        await ctx.message.delete()
         
     except Exception as e:
         await ctx.send(f"❌ Error changing PFP: {str(e)}")
