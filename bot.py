@@ -20,14 +20,12 @@ async def pfp(ctx):
     
     # Check if message has attachments
     if not ctx.message.attachments:
-        await ctx.send("❌ Please upload an image with the command")
         return
     
     attachment = ctx.message.attachments[0]
     
     # Check if file is an image
     if not attachment.content_type or not attachment.content_type.startswith('image/'):
-        await ctx.send("❌ Please upload a valid image file")
         return
     
     try:
@@ -37,13 +35,12 @@ async def pfp(ctx):
         # Change the profile picture
         await bot.user.edit(avatar=image_data)
         
-        print(f"✓ PFP changed to {attachment.filename}")
+        print(f"PFP changed to {attachment.filename}")
         
         # Delete the message
         await ctx.message.delete()
         
     except Exception as e:
-        await ctx.send(f"❌ Error changing PFP: {str(e)}")
         print(f"Error: {str(e)}")
 
 def main():
@@ -55,17 +52,17 @@ def main():
     token = input("\n🔑 Enter your Discord token: ").strip()
     
     if not token:
-        print("❌ Token is required!")
+        print("Token is required!")
         return
     
-    print("\n⏳ Connecting...")
+    print("Connecting...")
     
     try:
         bot.run(token)
     except discord.errors.LoginFailure:
-        print("❌ Invalid token!")
+        print("Invalid token!")
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"Error: {str(e)}")
 
 if __name__ == "__main__":
     main()
