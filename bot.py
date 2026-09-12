@@ -12,7 +12,7 @@ bot = commands.Bot(command_prefix='>', intents=intents, self_bot=True)
 @bot.event
 async def on_ready():
     print(f'✓ Logged in as {bot.user}')
-    print(f'✓ Ready to change PFP!')
+    print(f'✓ Ready to change PFP & status!')
 
 @bot.command()
 async def pfp(ctx):
@@ -43,9 +43,47 @@ async def pfp(ctx):
     except Exception as e:
         print(f"Error: {str(e)}")
 
+@bot.command()
+async def stream(ctx, channel_id: str, *, status_text: str):
+    """
+    Set streaming status
+    Usage: >stream [CHANNEL_ID] [STATUS TEXT]
+    Example: >stream 123456789 streaming jin
+    """
+    
+    try:
+        # Create a Twitch activity
+        activity = discord.Streaming(
+            name=status_text,
+            url=f"https://twitch.tv/{channel_id}"
+        )
+        
+        await bot.change_presence(activity=activity)
+        print(f"Status set to: {status_text}")
+        
+        # Delete the message
+        await ctx.message.delete()
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+@bot.command()
+async def stopstream(ctx):
+    """Stop streaming status and reset to default"""
+    
+    try:
+        await bot.change_presence(activity=None)
+        print("Streaming status removed")
+        
+        # Delete the message
+        await ctx.message.delete()
+        
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
 def main():
     print("=" * 50)
-    print("Discord PFP Selfbot")
+    print("Discord PFP & Status Selfbot")
     print("=" * 50)
     
     # Get token from user
