@@ -3,6 +3,13 @@ from discord.ext import commands
 import aiohttp
 import os
 import sys
+import logging
+
+# Setup logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 # Selfbot setup
 intents = discord.Intents.default()
@@ -10,10 +17,22 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix='>', intents=intents, self_bot=True)
 
+# Enable discord.py debug logging
+discord_logger = logging.getLogger('discord')
+discord_logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+discord_logger.addHandler(handler)
+
 @bot.event
 async def on_ready():
     print(f'✓ Logged in as {bot.user}')
+    print(f'✓ User ID: {bot.user.id}')
     print(f'✓ Ready to change PFP & status!')
+
+@bot.event
+async def on_error(event, *args, **kwargs):
+    print(f"Error in {event}: {sys.exc_info()}")
 
 @bot.command()
 async def pfp(ctx):
@@ -134,24 +153,35 @@ def main():
     token = os.getenv('DISCORD_TOKEN')
     
     if not token:
-        print("DISCORD_TOKEN environment variable not set!")
+        print("ERROR: DISCORD_TOKEN environment variable not set!")
         print("Please set DISCORD_TOKEN in Railway variables")
         sys.exit(1)
     
-    print("Connecting...")
+    print(f"Token found. Length: {len(token)}")
+    print(f"Token starts with: {token[:20]}...")
+    print("Attempting to connect...")
     
     try:
         bot.run(token)
     except discord.errors.LoginFailure as e:
-        print("Login Failed!")
+        print("\n❌ LOGIN FAILED!")
+        print("=" * 50)
         print("Possible reasons:")
-        print("- Token is invalid or expired")
-        print("- Account needs 2FA verification")
-        print("- Account is locked")
-        print(f"Error details: {str(e)}")
+        print("1. Token is invalid or expired")
+        print("2. Token format is wrong")
+        print("3. Account is locked/deleted")
+        print("4. Token has extra spaces/characters")
+        print("=" * 50)
+        print(f"Error: {str(e)}")
+        sys.exit(1)
+    except discord.errors.GatewayNotFound:
+        print("\n❌ Gateway not found!")
+        print("Discord API unreachable")
         sys.exit(1)
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"\n❌ Unexpected error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 if __name__ == "__main__":
