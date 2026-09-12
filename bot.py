@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import aiohttp
 import os
+import sys
 
 # Selfbot setup
 intents = discord.Intents.default()
@@ -133,18 +134,25 @@ def main():
     token = os.getenv('DISCORD_TOKEN')
     
     if not token:
-        print("❌ DISCORD_TOKEN environment variable not set!")
+        print("DISCORD_TOKEN environment variable not set!")
         print("Please set DISCORD_TOKEN in Railway variables")
-        return
+        sys.exit(1)
     
     print("Connecting...")
     
     try:
         bot.run(token)
-    except discord.errors.LoginFailure:
-        print("Invalid token!")
+    except discord.errors.LoginFailure as e:
+        print("Login Failed!")
+        print("Possible reasons:")
+        print("- Token is invalid or expired")
+        print("- Account needs 2FA verification")
+        print("- Account is locked")
+        print(f"Error details: {str(e)}")
+        sys.exit(1)
     except Exception as e:
         print(f"Error: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
